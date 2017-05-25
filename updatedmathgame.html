@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+        <title>
+            24
+        </title>
+        <h1>
+            <div style="text-align:center">
+                <canvas id="myCanvas" width="980" height="700"></canvas>
+            </div>
+        </h1>
+        <script>
+            /*global $*/
+            /*global Image*/
+            $(document).ready(function(){
+                // canvas stuff
+                var canvas = document.getElementById('myCanvas');
+                var context = canvas.getContext('2d');
+                var w = 980;
+                var h = 700;
+                
+                // character stats
+                var level = 1;
+                var Leveltext = "Level: " + level;
+                var xp = 0;
+                var Xptext = "Xp: " + xp;
+                var maxhealth = 10;
+                var health = maxhealth;
+                var Healthtext = "Health: " + health;
+                var defense = 0;
+                var defensetext = "Defense: " + defense;
+                
+                // the game is a game where the player fights enemies in a tower
+                // the higher the floors of the tower, the stronger the enemies
+                var floor = 0;
+    
+                // enemy stats
+                var enemyhealth = 10;
+                var enemyhealthtext;
+                var enemyattack = 1;
+                var enemyattacktext;
+                var enemydefense = 0;
+                var enemydefensetext;
+                
+                // amount of damage either the player or enemy will take
+                var damage;
+                var damagetext;
+                
+                // backgrounds
+                var towerEntrance = new Image();
+                towerEntrance.src = 'towerentrance.png';
+                // tower entrance picture taken from the "castle1" backdrop from
+                // the scratch.mit.edu backdrop library
+                
+                var towerInside = new Image();
+                towerInside.src = 'towerinside.png';
+                // tower inside picture taken from the "castle4" backdrop from
+                // the scratch.mit.edu backdrop library
+                
+                var battlefield = new Image();
+                battlefield.src = 'battlefield.png';
+                // battlefield background taken from the "castle2" backdrop from
+                // the scratch.mit.edu backdrop library
+                
+                // variable used to keep track if in battle or not
+                var battle = false;
+                
+                // other images
+                var player = new Image();
+                player.src = 'player.png';
+                // wizard picture for the player taken from http://www.webweaver.nu/clipart/wizards.shtml
+                
+                var enemy = new Image();
+                enemy.src = 'enemy.png';
+                // scorpion picture for enemy taken from http://clipart-library.com/clipart/piod9bpdT.htm
+                // is the enemy alive?
+                var alive = false;
+                
+                var arrow = new Image();
+                arrow.src = 'arrow.png';
+                // arrow picture taken from the Arrow1 sprite from the
+                // sprite library on scratch.mit.edu
+                var arrowx;
+                var arrowy;
+                
+                var fireball0 = new Image();
+                fireball0.src = 'fireball0.png';
+                var fireball1 = new Image();
+                fireball1.src = 'fireball1.png';
+                var fireball2 = new Image();
+                fireball2.src = 'fireball2.png';
+                // all fireballs taken from https://clipartfest.com/download/5b0d1a03caea04b0aaa57c747099e7bda8e318ab.html and resized
+                
+                // x coordinate of a projectile used for attack
+                var projectilex;
+                var slashmarks = new Image();
+                slashmarks.src = 'slashmarks.png';
+                // scratch marks taken from http://www.clipartkid.com/claw-marks-3d-model-made-with-123d-clip-art-O3K9sU-clipart/, and
+                // used scratch.mit.edu to edit the scratchmarks into an x shape to make slash marks
+                
+                // array to generate 16 numbers for later use
+                var numbers = [];
+                
+                //variables used to keep track movement
+                var playerx = w/2;
+                var playery = h - 150;
+                var enemyx;
+                var enemyy;
+                var directionleft;
+                var directionright;
+                var directionup;
+                var directiondown;
+                var space;
+                var enter;
+                var enter1;
+                
+                // variable used to keep track of what is being highlighted when in battle
+                var option = 0;
+                
+                // keeps track of what numbers have been selected in battle
+                // if it equals 0 its false, 1 is true
+                var selected = [];
+                for (var i = 0; i < 16; i++)
+                {
+                    selected[i] = 0;
+                }
+                
+                // counter used to check how many numbers are selected
+                var counter = 0;
+                var counter1 = 0;
+                
+                // since the battle system is a multi step process,
+                // these are variables used to keep track of current step
+                var step = 0;
+                
+                // keeps track of time
+                var time = 0;
+                
+                //battle starts when this variable is true
+                
+                // used to keep track of the sum of selected numbers in battle
+                var total = 0;
+                
+                playGame();
+                
+                // paints game screen every 60 ms
+                function playGame()
+                {
+                    if(typeof game_loop != "undefined") clearInterval(game_loop);
+                    game_loop = setInterval(paint,60);
+                }
+                
+                function paint()
+                {
+                    // empties the screen and outlines canvas
+                    context.fillStyle = 'white';
+                    context.fillRect(0,0,w,h);
+                    context.strokeStyle = 'black';
+                    context.strokeRect(0,0,w,h);
+                    
+                    // press arrow keys to move unless in battle
+                    // press arrow keys to change what number is being hovered over if in battle
+                    // press enter to select or deselect a number in battle
+                    // press spacebar to attack in battle
+                    $(document).keydown(function(e)
+                    {
+                        var key = e.which;
+                        if (key == '37')
+                        {
+                            directionleft = true;
+                        }
+                        if (key == '38') 
+                        {    
+                            directionup = true;
+                        }
+                        if (key == '39') 
+                        {
+                            directionright = true;
+                        }
+                        if (key == '40') 
+                        {
+                            directiondown = true;
+                        }
+                        if (key == '32')
+                        {
+                            space = true;
+                        }
+                        if (key == '13')
+                        {
+                            enter = true;
+                        }
+                    });
+                    
+                    $(document).keyup(function(e)
+                    {
+                        var key = e.which;
+                        if (key == '37')
+                        {
+                            directionleft = false;
+                        }
+                        if (key == '38') 
+                        {    
+                            directionup = false;
+                        }
+                        if (key == '39') 
+                        {
+                            directionright = false;
+                        }
+                        if (key == '40') 
+                        {
+                            directiondown = false;
+                        }
+                        if (key == '32')
+                        {
+                            space = false;
+                        }
+                        if (key == '13')
+                        {
+                            enter = false;
+                            enter1 = false;
+                        }
+                    });
+                    // move proper direction if not in battle
+                    if (directionleft)
+                    {
+                        if (battle == false && playerx > 0)
+                        {
+                            playerx = playerx - 10;
+                        }
+                        else if (battle)
+                        {
+                            if (option % 4 > 0)
+                            {
+                                option--;
+                            }
+                        }
+                    }
+                    if (directionup)
+                    {
+                        if (battle == false && playery > 0)
+                        {
+    	                    playery = playery - 10;
+                        }
+                        else if (battle)
+                        {
+                            if (option > 3)
+                            {
+                                option = option - 4;
+                            }
+                        }
+        	        }
+            	    if (directionright)
+            	    {
+            	        if (battle == false && playerx < w)
+            	        {
+                	        playerx = playerx + 10;
+            	        }
+            	        else if (battle)
+            	        {
+            	            if (option % 4 < 3)
+            	            {
+            	                option++;
+            	            }
+            	        }
+            	    }
+            	    if (directiondown)
+            	    {
+            	        if (battle == false && playery < h)
+            	        {
+                	        playery = playery + 10;
+            	        }
+            	        else if (battle)
+            	        {
+            	            if (option < 12)
+            	            {
+            	                option = option + 4;
+            	            }
+            	        }
+            	    }
+            	   if (enter && battle && step == 1 && enter1 == false )
+            	    {
+            	        // if the number is already selected, deselect it
+                        if (selected[option] == 1)
+                        {
+                            selected[option] = 0;
+                            counter--;
+                            enter1 = true;
+                        }
+                        else // select it
+                        {
+                            selected[option] = 1;
+                            counter++;
+                            enter1 = true;
+                        }
+            	    }
+            	    if (space && battle && step == 1)
+            	    {
+            	        // move on to the next step in the battle
+                        total = 0;
+                        step = 2;
+            	    }
+            	    if (space && battle && step == 0)
+            	    {
+            	        step = 1;
+            	    }
+
+                    // the order of drawImages matters
+                    // the last image to be drawn is on the top most layer
+                    // draw background, then enemies, then player
+                    if (floor == 0)
+                    {
+                        arrowx = w/2 - 50;
+                        arrowy = h/2 + 100;
+                        context.drawImage(towerEntrance, 0, 0);
+                        context.fillStyle = 'blue';
+                        context.font = '50pt Calibri';
+                        context.fillText('Enter if you dare!', w/2 - 290, 100);
+                        context.fillText('Floor: ' + floor, w/2 - 25, 150);
+                        context.drawImage(arrow, arrowx, arrowy);
+                    }
+                    else if (battle == false)
+                    {
+                        context.drawImage(towerInside, 0, 0);
+                        context.fillStyle = 'white';
+                        context.font = '40pt Calibri';
+                        context.fillText('Floor: ' + floor, w/2 - 25, 150);
+                        context.fillText('Touch the enemy to battle with it', 120, 100);
+                    }
+                    else
+                    {
+                        context.drawImage(battlefield, 0, 0);
+                    }
+                    if (alive)
+                    {
+                        context.drawImage(enemy, enemyx, enemyy);
+                    }
+                    else if (floor > 0)
+                    {
+                        arrowx = 140;
+                        arrowy = 200;
+                        context.drawImage(arrow, arrowx, arrowy);
+                    }
+                    context.drawImage(player, playerx, playery);
+                    
+                    // displays health, defense, etc for player and enemy
+                    showStats();
+                    
+                    // if player touches enemy initiate battle
+                    if (playery < enemyy + 100 && playery > enemyy - 100 && playerx > enemyx - 100 && playerx < enemyx + 100 && floor > 0 && battle == false && alive == true)
+                    {
+                        initBattle();
+                    }
+                    
+                    // if player touches arrow, move to next background
+                    if (playerx > arrowx - 120 && playerx < arrowx + 40 && playery < arrowy + 60 && playery > arrowy - 150 && alive == false)
+                    {
+                        playerx = w/2 - 100;
+                        playery = h - 100;
+                        enemyx = w - 230;
+                        enemyy = h/2 + 30;
+                        alive = true;
+                        floor++;
+                        // the higher the floors of the tower, the stronger the enemies
+                        enemyhealth = ((floor - 1) * 5) + 10;
+                        enemydefense = 3 * Math.floor(floor / 5);
+                        enemyattack = 3 * Math.floor(floor / 5) + 1;
+                    }
+                    
+                    // time to battle
+                    if (battle)
+                    {
+                        if (step == 0)
+                        {
+                            // displays directions for the player to follow
+                            directions();
+                        }
+                        if (step == 1)
+                        {
+                            directions();
+                            
+                            // highlights number currently being hovered over in green
+                            // also highlights whatever numbers that have been selected with blue
+                            // highlights everything else with white
+                            highlight();
+                            
+                            // creates a 4 by 4 square on screen and fill it with numbers
+                            square();
+                            context.fillStyle = 'white';
+                            context.font = '50pt Calibri';
+                            if (time > 0)
+                            {
+                                context.fillText(Math.ceil(time / 20), w/2 - 10, h/2 + 130);
+                                time--;
+                            }
+                            if (time == 0)
+                            {
+                                step = 3;
+                                projectilex = playerx + 40;
+                            }
+                        }
+                        if (step == 2)
+                        {
+                            // checks to see if the attack is successful
+                            // in order for it to be successful, all selected numbers must add to 24
+                            for (var i = 0; i < 16; i++)
+                            {
+                                if (selected[i] == 1)
+                                {
+                                    total = total + numbers[i];
+                                }
+                            }
+                            // generates new numbers to replace used ones, and deselect all numbers
+                            for (var i = 0; i < 16; i++)
+                            {
+                                if (selected[i] == 1)
+                                {
+                                    numbers[i] = Math.floor(Math.random() * 10);
+                                    selected[i] = 0;
+                                }
+                            }
+                            if (total == 24)
+                            {
+                                counter1 = counter1 + counter;
+                            }
+                            counter = 0;
+                            step = 1;
+                        }
+                        if (step == 3)
+                        {
+                            // more selected numbers = more damage
+                            damage = counter1 * level - enemydefense;
+                            if (damage < 0)
+                            {
+                                damage = 0;
+                            }
+                            damagetext = "-" + damage;
+                            
+                            // animation
+                            if (projectilex < enemyx - 80)
+                            {
+                                if (counter1 <= 6)
+                                {
+                                    context.drawImage(fireball0, projectilex, h/2 + 100);
+                                }
+                                if (counter1 >= 7 && counter1 <= 14)
+                                {
+                                    context.drawImage(fireball1, projectilex, h/2 + 100);
+                                }
+                                if (counter1 >= 15)
+                                {
+                                    context.drawImage(fireball2, projectilex, h/2 + 100);
+                                }
+                                projectilex = projectilex + 15;
+                            }
+                            if (projectilex >= enemyx - 80)
+                            {
+                                context.font = '40pt Calibri';
+                                context.fillStyle = 'red';
+                                context.fillText(damagetext, enemyx + 100, enemyy - 50);
+                                if (time < 12)
+                                {
+                                    time++;
+                                }
+                                if (time == 12)
+                                {
+                                    enemyhealth = enemyhealth - damage;
+                                    time = 0;
+                                    // if enemy survives go to step 4
+                                    if (enemyhealth > 0)
+                                    {
+                                        counter1 = 0;
+                                        step = 4;
+                                    }
+                                    else // if enemy dies go to step 5
+                                    {
+                                        counter1 = 0;
+                                        step = 5;
+                                    }
+                                }
+                            }
+                            // generates new numbers to replace used ones, and deselect all numbers
+                            for (var i = 0; i < 16; i++)
+                            {
+                                if (selected[i] == 1)
+                                {
+                                    numbers[i] = Math.floor(Math.random() * 10);
+                                    selected[i] = 0;
+                                }
+                            }
+                        }
+                        // enemy attacks if it survives
+                        if (step == 4)
+                        {
+                            context.font = '40pt Calibri';
+                            context.fillStyle = 'red';
+                            damage = enemyattack - defense;
+                            damagetext = "-" + damage;
+                            if (enemyx > playerx + 100 && time != 19)
+                            {
+                                enemyx = enemyx - 15;
+                            }
+                            if (enemyx <= playerx + 100 && time < 19)
+                            {
+                                if (time < 12)
+                                {
+                                    time++;
+                                }
+                                if (time == 12)
+                                {
+                                    health = health - damage;
+                                    // game over if player dies
+                                    if (health < 1)
+                                    {
+                                        gameover();
+                                        return 0;
+                                    }
+                                }
+                                if (time > 11 && time < 19)
+                                {
+                                    context.fillText(damagetext, playerx, playery - 100);
+                                    context.drawImage(slashmarks, playerx + 20, playery);
+                                    time++;
+                                }
+                            }
+                            if (enemyx < w - 270 && time == 19)
+                            {
+                                enemyx = enemyx + 15;
+                            }
+                            if (enemyx == w - 270)
+                            {
+                                time = 400;
+                                step = 1;
+                            }
+                        }
+                        if (step == 5)
+                        {
+                            battle = false;
+                            alive = false;
+                            xp = xp + 25;
+                            if (xp == 100)
+                            {
+                                levelup();
+                            }
+                            step = 6;
+                        }
+                    }
+                }
+                
+                // shows health, level, experience, etc
+                function showStats()
+                {
+                    context.fillStyle = 'white';
+                    context.fillRect(0, 0, 90, 100);
+                    context.fillRect(w - 90, 0, 90, 75);
+                    defensetext = "Defense: " + defense;
+                    Xptext = "Xp: " + xp;
+                    Leveltext = "Level: " + level;
+                    Healthtext = "Health: " + health;
+                    context.font = '10pt Calibri';
+                    context.fillStyle = 'black';
+                    context.fillText(Xptext, 5 , 70);
+                    context.fillText(Leveltext, 5 , 95);
+                    context.fillText(Healthtext, 5 , 20);
+                    context.fillText(defensetext, 5 , 45);
+                    context.strokeStyle = 'black';
+                    context.strokeRect(0 , 0 , 90 , 25);
+                    context.strokeRect(0 , 25 , 90 , 25);
+                    context.strokeRect(0 , 50 , 90 , 25);
+                    context.strokeRect(0 , 75 , 90 , 25);
+                    enemyhealthtext = "Health: " + enemyhealth;
+                    enemydefensetext = "Defense: " + enemydefense;
+                    enemyattacktext = "Attack: " + enemyattack;
+                    context.fillText(enemyhealthtext, w - 85, 20);
+                    context.fillText(enemydefensetext, w - 85 , 45);
+                    context.fillText(enemyattacktext, w - 85 , 70);
+                    context.strokeRect(w - 90 , 0 , 90 , 25);
+                    context.strokeRect(w - 90 , 25 , 90 , 25);
+                    context.strokeRect(w - 90 , 50 , 90 , 25);
+                }
+                
+                function initBattle()
+                {
+                    playerx = 150;
+                    playery = h/2 + 100;
+                    enemyx = w - 270;
+                    enemyy = h/2 + 100;
+                    randomize();
+                    battle = true;
+                    if (floor == 1)
+                    {
+                        step = 0;
+                    }
+                    else
+                    {
+                        step = 1;
+                    }
+                    time = 400;
+                }
+                
+                function randomize()
+                {
+                    for (var i = 0; i < 16; i++)
+                    {
+                        numbers[i] = Math.floor(Math.random() * 10);
+                    }
+                }
+                
+                function directions()
+                {
+                    context.fillStyle = 'white';
+                    context.fillRect(130, 5, 730, 275);
+                    context.font = '19pt Calibri';
+                    context.fillStyle = 'black';
+                    context.fillText('READ FIRST! Arrow keys to move. Enter to select/deselect numbers. ',140, 30);
+                    context.fillText('Selected numbers are highlighted in blue and must add to 24. When',140, 63);
+                    context.fillText('done selecting, press spacebar to use the selected numbers to Power',140, 96);
+                    context.fillText('Up. If the numbers add to 24, the Power Up succeeds, and damage',140, 129);
+                    context.fillText('will be added to your next attack. If they do not add to 24, the',140, 162);
+                    context.fillText('Power Up fails and damage will not be added. Continue selecting',140, 195);
+                    context.fillText('numbers and Powering Up until the timer hits zero. You have 20',140, 228);
+                    context.fillText('seconds per round. Press spacebar to continue to the battle.',140, 261);
+                }
+                
+                function highlight()
+                {
+                    context.fillStyle = 'white';
+                    context.fillRect(w/2 - 80, h/2 - 80, 160, 160);
+                    var column = option % 4;
+                    var row = Math.floor(option / 4);
+                    context.fillStyle = 'green';
+                    context.fillRect((w/2 - 80) + (40 * column), (h/2 - 80) + (40 * row), 40, 40);
+                    context.fillStyle = 'blue';
+                    for (var i = 0; i < 16; i++)
+                    {
+                        if (selected[i] == 1)
+                        {
+                            column = i % 4;
+                            row = Math.floor(i / 4);
+                            context.fillRect((w/2 - 80) + (40 * column), (h/2 - 80) + (40 * row), 40, 40);
+                        }
+                    }
+                }
+                
+                function square()
+                {
+                    context.strokeStyle = 'black';
+                    context.strokeRect(w/2 - 80, h/2 - 80, 160, 80);
+                    context.strokeRect(w/2 - 80, h/2, 160, 80);
+                    context.strokeRect(w/2 - 80, h/2 - 40, 160, 80);
+                    context.strokeRect(w/2 - 80, h/2 - 80, 80, 160);
+                    context.strokeRect(w/2, h/2 - 80, 80, 160);
+                    context.strokeRect(w/2 - 40, h/2 - 80, 80, 160);
+                    for (var i = 0; i < 16; i++)
+                    {
+                        var column = i % 4;
+                        var row = Math.floor(i / 4);
+                        context.fillStyle = 'black';
+                        context.font = '10pt Calibri';
+                        context.fillText(numbers[i], (w/2 - 60) + (40 * column), (h/2 - 60) + (40 * row));
+                    }
+                }
+                
+                function gameover()
+                {
+                    context.fillStyle = 'white';
+                    context.fillRect(0,0,w,h);
+                    context.strokeStyle = 'black';
+                    context.strokeRect(0,0,w,h);
+                    context.fillStyle = 'black';
+                    context.font = '40pt Calibri';
+                    context.fillText("Game Over!", w/2 - 100, h/2);
+                }
+                
+                function levelup()
+                {
+                    maxhealth = maxhealth + 5;
+                    health = maxhealth;
+                    xp = 0;
+                    level++;
+                    defense++;
+                }
+            });
+        </script>
+    </head>
+</html>
