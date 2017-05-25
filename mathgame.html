@@ -102,6 +102,9 @@
                 // array to generate 16 numbers for later use
                 var numbers = [];
                 
+                // target number to add up to
+                var target = 24;
+                
                 //variables used to keep track movement
                 var playerx = w/2;
                 var playery = h - 150;
@@ -113,7 +116,7 @@
                 var directiondown;
                 var space;
                 var enter;
-                var enter1;
+                var enter1 = false;
                 
                 // variable used to keep track of what is being highlighted when in battle
                 var option = 0;
@@ -314,6 +317,7 @@
                     if (enter && battle && tutorial == 3)
             	    {
                         step = 1;
+                        tutorial = 4;
             	    }
             	    if (space && battle && step == 1)
             	    {
@@ -332,8 +336,8 @@
                         }
                         counter1 = counter1 + counter;
                         counter = 0;
+                        target = Math.floor(Math.random() * 20 + 20);
             	    }
-
                     // the order of drawImages matters
                     // the last image to be drawn is on the top most layer
                     // draw background, then enemies, then player
@@ -402,14 +406,16 @@
                         if (step == 0)
                         {
                             context.fillStyle = 'white';
-                            context.fillRect(130, 5, 730, 110);
+                            context.font = '50pt Calibri';
+                            context.fillText(target, w/2 - 10, 200);
+                            context.fillRect(110, 5, 770, 110);
                             context.font = '19pt Calibri';
                             context.fillStyle = 'black';
                             if (tutorial == 0)
                             {
-                                context.fillText('Welcome to your first battle! The number you are currently hovered',140, 30);
-                                context.fillText('over is highlighted in green. Use the arrow keys to hover over the',140, 63);
-                                context.fillText('8 in the bottom right square.',140, 96);
+                                context.fillText('Welcome to your first battle! The number you are currently hovered over ',120, 30);
+                                context.fillText('is highlighted in green. Use the arrow keys to hover over the 8 in the',120, 63);
+                                context.fillText('bottom right square.',120, 96);
                                 if (option == 15)
                                 {
                                     tutorial = 1;
@@ -419,9 +425,9 @@
                             }
                             if (tutorial == 1)
                             {
-                                context.fillText('Now press the enter or return key to select the 8. Once it has been',140, 30);
-                                context.fillText('selected, it will be highlighted in blue. Then, select the two 8s at',140, 63);
-                                context.fillText('the top left and top right squares. You can also deselect with enter.',140, 96);
+                                context.fillText('Now press the enter or return key to select the 8. Once it has been selected',120, 30);
+                                context.fillText('it will be highlighted in blue. Then, select the two 8s at the top left and',120, 63);
+                                context.fillText('top right squares. You can also deselect with enter.',120, 96);
                                 if (selected[15] == 1 && selected[0] == 1 && selected[3] == 1)
                                 {
                                     tutorial = 2;
@@ -429,15 +435,18 @@
                             }
                             if (tutorial == 2)
                             {
-                                context.fillText('You have successfully selected numbers that add up to 24! Now, press',140, 30);
-                                context.fillText('the spacebar to use your selected numbers to Power Up your next',140, 63);
-                                context.fillText('attack. This only works if the selected numbers add up to 24.',140, 96);
+                                context.fillText('You have successfully selected numbers that add up to the target number',120, 30);
+                                context.fillText('displayed at the top! Press spacebar to Power Up your next attack. This',120, 63);
+                                context.fillText('only works if the selected numbers add up to the target number.',120, 96);
                             }
                             if (tutorial == 3)
                             {
-                                context.fillText('Next, continue quickly selecting more numbers and Power Up as',140, 30);
-                                context.fillText('many times as you can before the 20 second timer hits 0. Once',140, 63);
-                                context.fillText('the timer runs out, you will attack. Press enter when ready.',140, 96);
+                                context.fillText('Every time you Power Up, the target number changes. Continue selecting',120, 30);
+                                context.fillText('more numbers and Power Up as many times as you can before the timer ',120, 63);
+                                context.fillText('hits 0. Once it runs out, you will attack. Press enter when ready.',120, 96);
+                                context.fillStyle = 'white';
+                                context.font = '50pt Calibri';
+                                context.fillText('20', w/2 - 10, h/2 + 130);
                             }
                             // highlights number currently being hovered over in green
                             // also highlights whatever numbers that have been selected with blue
@@ -453,6 +462,7 @@
                             square();
                             context.fillStyle = 'white';
                             context.font = '50pt Calibri';
+                            context.fillText(target, w/2 - 10, 200);
                             if (time > 0)
                             {
                                 context.fillText(Math.ceil(time / 20), w/2 - 10, h/2 + 130);
@@ -467,13 +477,17 @@
                         if (step == 2)
                         {
                             // checks to see if the attack is successful
-                            // in order for it to be successful, all selected numbers must add to 24
+                            // in order for it to be successful, all selected numbers must add to target
                             for (var i = 0; i < 16; i++)
                             {
                                 if (selected[i] == 1)
                                 {
                                     total = total + numbers[i];
                                 }
+                            }
+                            if (total == target)
+                            {
+                                counter1 = counter1 + counter;
                             }
                             // generates new numbers to replace used ones, and deselect all numbers
                             for (var i = 0; i < 16; i++)
@@ -484,12 +498,9 @@
                                     selected[i] = 0;
                                 }
                             }
-                            if (total == 24)
-                            {
-                                counter1 = counter1 + counter;
-                            }
                             counter = 0;
                             step = 1;
+                            target = Math.floor(Math.random() * 20 + 20);
                         }
                         if (step == 3)
                         {
@@ -596,6 +607,7 @@
                             {
                                 time = 400;
                                 step = 1;
+                                target = Math.floor(Math.random() * 20 + 20); 
                             }
                         }
                         if (step == 5)
@@ -655,6 +667,7 @@
                     if (floor == 1)
                     {
                         step = 0;
+                        target = 24;
                         for (var i = 0; i < 15; i++)
                         {
                             numbers[i] = 0;
@@ -664,6 +677,7 @@
                     else
                     {
                         step = 1;
+                        target = Math.floor(Math.random() * 20 + 20);
                     }
                     time = 400;
                 }
