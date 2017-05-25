@@ -317,7 +317,7 @@
                         total = 0;
                         step = 2;
             	    }
-            	    if (space && battle && tutorial == 2 && selected[0] == 1 && selected[3] == 1 && selected[15] == 1)
+            	    if (space && tutorial == 2 && selected[0] == 1 && selected[3] == 1 && selected[15] == 1)
             	    {
             	        tutorial == 3;
                         // generates new numbers, and deselect all numbers
@@ -328,6 +328,10 @@
                         }
                         counter1 = counter1 + counter;
                         counter = 0;
+            	    }
+                    if (space && battle && tutorial == 3)
+            	    {
+                        step = 1;
             	    }
 
                     // the order of drawImages matters
@@ -403,7 +407,7 @@
                             context.fillStyle = 'black';
                             if (tutorial == 0)
                             {
-                                context.fillText('Welcome to your first battle! The number yo are currently hovered',140, 30);
+                                context.fillText('Welcome to your first battle! The number you are currently hovered',140, 30);
                                 context.fillText('over is highlighted in green. Use the arrow keys to hover over the',140, 63);
                                 context.fillText('8 in the bottom right square.',140, 96);
                                 if (option == 15)
@@ -431,9 +435,9 @@
                             }
                             if (tutorial == 3)
                             {
-                                context.fillText('Now quickly select more numbers and Power Up as many times as',140, 30);
-                                context.fillText('many times as you can before the time runs out! You have 20',140, 63);
-                                context.fillText('seconds. Once the timer runs out, your attack will go off.',140, 96);
+                                context.fillText('Next, continue quickly selecting more numbers and Power Up as',140, 30);
+                                context.fillText('many times as you can before the 20 second timer hits 0. Once',140, 63);
+                                context.fillText('the timer runs out, you will attack. Press spacebar when ready.',140, 96);
                             }
                             // highlights number currently being hovered over in green
                             // also highlights whatever numbers that have been selected with blue
