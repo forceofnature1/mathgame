@@ -131,9 +131,11 @@
                 var counter1 = 0;
                 
                 // since the battle system is a multi step process,
-                // these are variables used to keep track of current step
+                // this variable is used to keep track of current step
                 var step = 0;
                 
+                // keeps track of progress in tutorial, the first battle
+                var tutorial = 0;
                 // keeps track of time
                 var time = 0;
                 
@@ -294,15 +296,38 @@
                             enter1 = true;
                         }
             	    }
+                    if (enter && battle && step == 0 && enter1 == false && tutorial == 1 && (option == 15 || option == 0 || option == 3))
+                    {
+                        if (selected[option] == 1)
+                        {
+                            selected[option] = 0;
+                            counter--;
+                            enter1 = true;
+                        }
+                        else // select it
+                        {
+                            selected[option] = 1;
+                            counter++;
+                            enter1 = true;
+                        }
+                    }
             	    if (space && battle && step == 1)
             	    {
             	        // move on to the next step in the battle
                         total = 0;
                         step = 2;
             	    }
-            	    if (space && battle && step == 0)
+            	    if (space && battle && tutorial == 2 && selected[0] == 1 && selected[3] == 1 && selected[15] == 1)
             	    {
-            	        step = 1;
+            	        tutorial == 3;
+                        // generates new numbers, and deselect all numbers
+                        for (var i = 0; i < 16; i++)
+                        {
+                            numbers[i] = Math.floor(Math.random() * 10);
+                            selected[i] = 0;
+                        }
+                        counter1 = counter1 + counter;
+                        counter = 0;
             	    }
 
                     // the order of drawImages matters
@@ -372,19 +397,55 @@
                     {
                         if (step == 0)
                         {
-                            // displays directions for the player to follow
-                            directions();
-                        }
-                        if (step == 1)
-                        {
-                            directions();
-                            
+                            context.fillStyle = 'white';
+                            context.fillRect(130, 5, 730, 110);
+                            context.font = '19pt Calibri';
+                            context.fillStyle = 'black';
+                            if (tutorial == 0)
+                            {
+                                context.fillText('Welcome to your first battle! The number yo are currently hovered',140, 30);
+                                context.fillText('over is highlighted in green. Use the arrow keys to hover over the',140, 63);
+                                context.fillText('8 in the bottom right square.',140, 96);
+                                if (option == 15)
+                                {
+                                    tutorial = 1;
+                                    numbers[0] = 8;
+                                    numbers[3] = 8;
+                                }
+                            }
+                            if (tutorial == 1)
+                            {
+                                context.fillText('Now press the enter or return key to select the 8. Once it has been',140, 30);
+                                context.fillText('selected, it will be highlighted in blue. Then, select the two 8s at',140, 63);
+                                context.fillText('the top left and top right squares. You can also deselect with enter.',140, 96);
+                                if (selected[15] == 1 && selected[0] == 1 && selected[3] == 1)
+                                {
+                                    tutorial = 2;
+                                }
+                            }
+                            if (tutorial == 2)
+                            {
+                                context.fillText('You have successfully selected numbers that add up to 24! Now, press',140, 30);
+                                context.fillText('the spacebar to use your selected numbers to Power Up your next',140, 63);
+                                context.fillText('attack. This only works if the selected numbers add up to 24.',140, 96);
+                            }
+                            if (tutorial == 3)
+                            {
+                                context.fillText('Now quickly select more numbers and Power Up as many times as',140, 30);
+                                context.fillText('many times as you can before the time runs out! You have 20',140, 63);
+                                context.fillText('seconds. Once the timer runs out, your attack will go off.',140, 96);
+                            }
                             // highlights number currently being hovered over in green
                             // also highlights whatever numbers that have been selected with blue
                             // highlights everything else with white
                             highlight();
                             
                             // creates a 4 by 4 square on screen and fill it with numbers
+                            square();
+                        }
+                        if (step == 1)
+                        {
+                            highlight();
                             square();
                             context.fillStyle = 'white';
                             context.font = '50pt Calibri';
@@ -590,6 +651,11 @@
                     if (floor == 1)
                     {
                         step = 0;
+                        for (var i = 0; i < 15; i++)
+                        {
+                            numbers[i] = 0;
+                        }
+                        numbers[15] = 8;
                     }
                     else
                     {
@@ -604,22 +670,6 @@
                     {
                         numbers[i] = Math.floor(Math.random() * 10);
                     }
-                }
-                
-                function directions()
-                {
-                    context.fillStyle = 'white';
-                    context.fillRect(130, 5, 730, 275);
-                    context.font = '19pt Calibri';
-                    context.fillStyle = 'black';
-                    context.fillText('READ FIRST! Arrow keys to move. Enter to select/deselect numbers. ',140, 30);
-                    context.fillText('Selected numbers are highlighted in blue and must add to 24. When',140, 63);
-                    context.fillText('done selecting, press spacebar to use the selected numbers to Power',140, 96);
-                    context.fillText('Up. If the numbers add to 24, the Power Up succeeds, and damage',140, 129);
-                    context.fillText('will be added to your next attack. If they do not add to 24, the',140, 162);
-                    context.fillText('Power Up fails and damage will not be added. Continue selecting',140, 195);
-                    context.fillText('numbers and Powering Up until the timer hits zero. You have 20',140, 228);
-                    context.fillText('seconds per round. Press spacebar to continue to the battle.',140, 261);
                 }
                 
                 function highlight()
