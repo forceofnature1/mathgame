@@ -311,13 +311,18 @@
                             enter1 = true;
                         }
                     }
+                    if (enter && battle && tutorial == 3)
+            	    {
+                        enter1 = false;
+                        step = 1;
+            	    }
             	    if (space && battle && step == 1)
             	    {
             	        // move on to the next step in the battle
                         total = 0;
                         step = 2;
             	    }
-            	    if (space && tutorial == 2 && selected[0] == 1 && selected[3] == 1 && selected[15] == 1)
+            	    if (space && tutorial == 2)
             	    {
             	        tutorial = 3;
                         // generates new numbers, and deselect all numbers
@@ -328,10 +333,6 @@
                         }
                         counter1 = counter1 + counter;
                         counter = 0;
-            	    }
-                    if (space && battle && tutorial == 3)
-            	    {
-                        step = 1;
             	    }
 
                     // the order of drawImages matters
@@ -437,7 +438,7 @@
                             {
                                 context.fillText('Next, continue quickly selecting more numbers and Power Up as',140, 30);
                                 context.fillText('many times as you can before the 20 second timer hits 0. Once',140, 63);
-                                context.fillText('the timer runs out, you will attack. Press spacebar when ready.',140, 96);
+                                context.fillText('the timer runs out, you will attack. Press enter when ready.',140, 96);
                             }
                             // highlights number currently being hovered over in green
                             // also highlights whatever numbers that have been selected with blue
